@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDVPro Cuisine — RDV qualifiés pour cuisinistes</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--noir:#0D0D0D;--blanc:#FAFAFA;--vert:#00C27C;--vert-dark:#009960;--vert-pale:#E6FBF3;--gris:#F4F4F2;--gris-mid:#888;--gris-bord:#E0E0DE;--rouge:#E53935;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--blanc);color:var(--noir);min-height:100vh;}
+.hide{display:none!important;}
+
+/* NAV */
+nav{background:rgba(13,13,13,.97);backdrop-filter:blur(12px);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:99;border-bottom:1px solid #1a1a1a;}
+.logo{font-size:15px;font-weight:800;color:var(--blanc);}
+.logo span{color:var(--vert);}
+.nav-r{display:flex;align-items:center;gap:10px;}
+.cart-btn{background:var(--vert);color:var(--noir);border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.cart-count{background:var(--rouge);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.admin-link{font-size:11px;color:#333;cursor:pointer;padding:4px 10px;border:1px solid #1e1e1e;border-radius:6px;}
+.admin-link:hover{color:#666;}
+
+/* HERO MINI */
+.hero-mini{background:var(--noir);padding:32px 24px 28px;position:relative;overflow:hidden;}
+.hm-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,194,124,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,194,124,.03) 1px,transparent 1px);background-size:50px 50px;}
+.hm-content{position:relative;z-index:2;}
+.hm-tag{display:inline-block;background:rgba(0,194,124,.1);border:1px solid rgba(0,194,124,.2);color:var(--vert);font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;}
+.hm-content h1{font-size:22px;font-weight:800;color:var(--blanc);margin-bottom:6px;letter-spacing:-.5px;}
+.hm-content p{font-size:13px;color:#666;max-width:500px;}
+.hm-stats{display:flex;gap:24px;margin-top:16px;}
+.hms{text-align:left;}
+.hms-n{font-size:18px;font-weight:800;color:var(--vert);}
+.hms-l{font-size:10px;color:#555;margin-top:1px;}
+
+/* GARANTIE */
+.garantie-bar{background:var(--vert-pale);border-bottom:1px solid #A8EDD0;padding:10px 24px;display:flex;align-items:center;gap:10px;}
+.garantie-bar span{font-size:12px;color:#065F46;line-height:1.4;}
+.garantie-bar strong{font-weight:700;}
+
+/* BODY */
+.body{padding:18px 20px;}
+.dbanner{background:#1a2a1a;border:1px solid #2a3a2a;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:#4a8a4a;}
+
+/* FILTRES NICHES */
+.niches{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+.niche{background:var(--gris);border:1.5px solid var(--gris-bord);border-radius:20px;padding:5px 13px;font-size:12px;font-weight:600;color:var(--gris-mid);cursor:pointer;transition:all .15s;}
+.niche.on{background:var(--noir);border-color:var(--noir);color:var(--blanc);}
+
+/* FILTRES DEPT */
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+.fb{background:var(--blanc);border:1.5px solid var(--gris-bord);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--gris-mid);cursor:pointer;}
+.fb.on{background:var(--vert);border-color:var(--vert);color:var(--noir);font-weight:700;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat{background:var(--gris);border-radius:10px;padding:11px 13px;}
+.stat-n{font-size:18px;font-weight:800;color:var(--noir);}
+.stat-l{font-size:11px;color:var(--gris-mid);margin-top:1px;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.loading{text-align:center;padding:48px;color:var(--gris-mid);font-size:14px;}
+
+/* CARD */
+.card{background:var(--blanc);border:1.5px solid var(--gris-bord);border-radius:14px;overflow:hidden;transition:transform .1s,border-color .15s;}
+.card:hover{transform:translateY(-2px);}
+.card.in-cart{border-color:var(--vert);border-width:2px;}
+.card-top{background:var(--noir);padding:13px 15px;display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;position:relative;overflow:hidden;}
+.card-top-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,194,124,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,194,124,.04) 1px,transparent 1px);background-size:30px 30px;}
+.card-ville{font-size:14px;font-weight:800;color:var(--blanc);position:relative;}
+.card-cp{font-size:11px;color:#444;margin-top:1px;position:relative;}
+.card-badge{background:var(--vert);color:var(--noir);font-size:10px;font-weight:800;padding:3px 8px;border-radius:8px;position:relative;}
+.card-body{padding:12px 15px;cursor:pointer;}
+.cf{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--gris);}
+.cf:last-child{border-bottom:none;}
+.cfl{color:var(--gris-mid);}
+.cfv{font-weight:600;color:var(--noir);text-align:right;max-width:60%;}
+.cfv.green{color:var(--vert);}
+.cfv.blur{filter:blur(4px);user-select:none;color:#ccc;}
+.card-foot{padding:10px 15px;border-top:1.5px solid var(--gris);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.prix{font-size:15px;font-weight:800;color:var(--noir);}
+.prix-sub{font-size:9px;color:var(--gris-mid);font-weight:400;}
+.btn-voir{background:var(--gris);color:var(--noir);border:none;border-radius:7px;padding:6px 11px;font-size:11px;font-weight:600;cursor:pointer;}
+.btn-cart{border:none;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-cart.add{background:var(--vert);color:var(--noir);}
+.btn-cart.remove{background:var(--rouge);color:#fff;}
+
+/* BARRE PANIER */
+#panier-bar{position:fixed;bottom:0;left:0;right:0;background:var(--noir);border-top:2px solid var(--vert);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;z-index:200;transform:translateY(100%);transition:transform .3s;}
+#panier-bar.show{transform:translateY(0);}
+.pb-info{color:var(--blanc);}
+.pb-count{font-size:11px;color:#555;margin-bottom:2px;}
+.pb-total{font-size:18px;font-weight:800;color:var(--vert);}
+.pb-btns{display:flex;gap:10px;}
+.pb-voir{background:#1a1a1a;color:var(--blanc);border:1px solid #333;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;}
+.pb-pay{background:var(--vert);color:var(--noir);border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;}
+
+/* PAGE PANIER */
+#s-panier{padding:20px;}
+.panier-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.back{font-size:13px;color:var(--vert);cursor:pointer;font-weight:600;}
+.panier-head h2{font-size:20px;font-weight:800;}
+.panier-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start;}
+.panier-items{display:flex;flex-direction:column;gap:10px;}
+.pi{background:var(--blanc);border:1.5px solid var(--gris-bord);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.pi-left{}
+.pi-ville{font-size:14px;font-weight:700;margin-bottom:3px;}
+.pi-niche{display:inline-block;background:var(--vert-pale);color:#065F46;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;margin-bottom:4px;}
+.pi-sub{font-size:12px;color:var(--gris-mid);}
+.pi-rdv{font-size:12px;color:var(--vert);font-weight:600;margin-top:3px;}
+.pi-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.pi-prix{font-size:15px;font-weight:800;}
+.pi-del{background:none;border:1px solid var(--gris-bord);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--rouge);cursor:pointer;}
+.panier-empty{text-align:center;padding:40px;color:var(--gris-mid);}
+.panier-empty div{font-size:32px;margin-bottom:10px;}
+
+/* RÉSUMÉ */
+.order-box{background:var(--noir);border-radius:16px;padding:22px;position:sticky;top:64px;}
+.order-box h3{font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:16px;}
+.or{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #1a1a1a;}
+.or-name{color:#555;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.or-prix{font-weight:600;color:var(--blanc);}
+.or-ht{display:flex;justify-content:space-between;font-size:12px;color:#555;padding:4px 0;}
+.or-tot{display:flex;justify-content:space-between;font-size:16px;font-weight:800;padding:14px 0 16px;border-top:1px solid #1a1a1a;margin-top:6px;}
+.or-tot span:last-child{color:var(--vert);}
+.pay-btn{width:100%;background:var(--vert);color:var(--noir);border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;}
+.pay-note{font-size:10px;color:#333;text-align:center;line-height:1.5;}
+.garantie-mini{background:#0d1f18;border:1px solid rgba(0,194,124,.2);border-radius:8px;padding:10px;margin-top:12px;font-size:11px;color:#4a8a4a;line-height:1.5;}
+
+/* DETAIL */
+#s-det{padding:20px;}
+.dgrid{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start;}
+.dmain{background:var(--blanc);border:1.5px solid var(--gris-bord);border-radius:14px;overflow:hidden;}
+.dmain-top{background:var(--noir);padding:20px;position:relative;overflow:hidden;}
+.dmain-top-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,194,124,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,194,124,.04) 1px,transparent 1px);background-size:30px 30px;}
+.dmain-top h2{font-size:20px;font-weight:800;color:var(--blanc);margin-bottom:3px;position:relative;}
+.dmain-meta{font-size:12px;color:#444;position:relative;}
+.dmain-body{padding:20px;}
+.dniche-badge{display:inline-block;background:var(--vert-pale);color:#065F46;font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;margin-bottom:14px;}
+.dsec{font-size:10px;font-weight:700;color:var(--gris-mid);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;}
+.drow{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--gris);}
+.drow:last-child{border-bottom:none;}
+.drl{color:var(--gris-mid);}
+.drv{font-weight:600;text-align:right;max-width:60%;}
+.drv.green{color:var(--vert);}
+.rdv-box{background:var(--vert-pale);border:1.5px solid #A8EDD0;border-radius:10px;padding:14px;margin-top:14px;}
+.rdv-box h4{font-size:13px;font-weight:700;color:#065F46;margin-bottom:4px;}
+.rdv-box p{font-size:13px;color:#065F46;font-weight:600;}
+.lckd{background:var(--gris);border:1.5px dashed var(--gris-bord);border-radius:10px;padding:16px;text-align:center;margin-top:14px;}
+.lckd p{font-size:12px;color:var(--gris-mid);margin-top:5px;line-height:1.5;}
+.pbox{background:var(--noir);border-radius:14px;padding:20px;position:sticky;top:64px;}
+.pbox h3{font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:14px;}
+.prow{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #1a1a1a;}
+.prow-l{color:#555;}
+.prow-r{font-weight:600;color:var(--blanc);}
+.ptot{display:flex;justify-content:space-between;font-size:16px;font-weight:800;padding:13px 0 16px;border-top:1px solid #1a1a1a;margin-top:6px;}
+.ptot span:last-child{color:var(--vert);}
+.paybtn-direct{width:100%;background:var(--vert);color:var(--noir);border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;}
+.paybtn-cart{width:100%;background:#1a1a1a;color:var(--blanc);border:1.5px solid #2a2a2a;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;}
+.paybtn-cart.in-cart{background:var(--rouge);border-color:var(--rouge);}
+.trust-list{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
+.tl-item{font-size:11px;color:#444;display:flex;align-items:center;gap:6px;}
+
+/* ADMIN */
+#s-adminlogin{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--noir);}
+.abox{background:#111;border:1px solid #1e1e1e;border-radius:14px;padding:28px;width:320px;}
+.atitle{font-size:17px;font-weight:800;color:var(--blanc);text-align:center;margin-bottom:4px;}
+.atitle span{color:var(--vert);}
+.asub{font-size:12px;color:#444;text-align:center;margin-bottom:18px;}
+.lbl{font-size:12px;color:#555;display:block;margin:8px 0 4px;}
+.finp{width:100%;padding:10px 12px;border:1px solid #222;border-radius:8px;font-size:14px;outline:none;background:#1a1a1a;color:var(--blanc);}
+.finp:focus{border-color:var(--vert);}
+.bbtn{width:100%;background:var(--vert);color:var(--noir);border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;}
+.lerr{color:var(--rouge);font-size:12px;text-align:center;margin-top:8px;min-height:18px;}
+.back-cat{font-size:12px;color:var(--vert);cursor:pointer;text-align:center;display:block;margin-top:12px;}
+#s-adm{display:flex;min-height:calc(100vh - 54px);}
+.asb{width:190px;background:var(--noir);flex-shrink:0;border-right:1px solid #111;}
+.asblogo{padding:14px 16px;border-bottom:1px solid #111;font-size:13px;font-weight:800;color:var(--blanc);}
+.asblogo span{color:var(--vert);}
+.asi{padding:10px 16px;font-size:13px;color:#444;cursor:pointer;display:flex;align-items:center;gap:8px;border-left:2px solid transparent;}
+.asi.on{background:#0a0a0a;color:var(--blanc);border-left-color:var(--vert);}
+.asi:hover{background:#0a0a0a;color:var(--blanc);}
+.asd{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.amain{flex:1;padding:20px 22px;background:var(--gris);overflow-y:auto;}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.kpi{background:var(--blanc);border:1.5px solid var(--gris-bord);border-radius:10px;padding:13px;}
+.kv{font-size:22px;font-weight:800;color:var(--noir);}
+.kl{font-size:11px;color:var(--gris-mid);margin-top:2px;}
+.atbl{background:var(--blanc);border:1.5px solid var(--gris-bord);border-radius:10px;overflow:hidden;}
+.atblh{padding:12px 16px;border-bottom:1px solid var(--gris);font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+.refbtn{font-size:11px;color:var(--vert);cursor:pointer;padding:3px 9px;border:1px solid var(--vert);border-radius:6px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:10px;font-weight:700;color:var(--gris-mid);text-transform:uppercase;padding:8px 13px;border-bottom:1px solid var(--gris);text-align:left;background:#fafafa;}
+td{font-size:13px;padding:8px 13px;border-bottom:1px solid var(--gris);color:var(--noir);}
+tr:last-child td{border-bottom:none;}tr:hover td{background:var(--gris);}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;}
+.pd{background:var(--vert-pale);color:#065F46;}
+.pv{background:#FEE2E2;color:var(--rouge);}
+
+/* BANNIERE INSCRIPTION */
+.inscr-banner{background:linear-gradient(135deg,#0d1f18,#111);border-bottom:1px solid rgba(0,194,124,.2);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.ib-text{font-size:13px;color:#888;}
+.ib-text strong{color:var(--blanc);}
+.ib-btn{background:var(--vert);color:var(--noir);border:none;border-radius:7px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.ib-btn:hover{background:var(--vert-dark);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:28px;width:100%;max-width:420px;position:relative;}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:#444;font-size:18px;cursor:pointer;}
+.modal-close:hover{color:#888;}
+.modal-icon{font-size:28px;margin-bottom:12px;}
+.modal h3{font-size:18px;font-weight:800;color:var(--blanc);margin-bottom:6px;}
+.modal-sub{font-size:13px;color:#555;margin-bottom:20px;line-height:1.5;}
+.modal-benefits{display:flex;flex-direction:column;gap:6px;margin-bottom:20px;}
+.mb{font-size:12px;color:#4a8a4a;display:flex;align-items:center;gap:7px;}
+.mform{display:flex;flex-direction:column;gap:10px;}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.minp{width:100%;padding:10px 12px;background:#1a1a1a;border:1px solid #222;border-radius:8px;font-size:13px;color:var(--blanc);outline:none;}
+.minp:focus{border-color:var(--vert);}
+.minp::placeholder{color:#444;}
+.mselect{width:100%;padding:10px 12px;background:#1a1a1a;border:1px solid #222;border-radius:8px;font-size:13px;color:var(--blanc);outline:none;}
+.mselect:focus{border-color:var(--vert);}
+.msubmit{width:100%;background:var(--vert);color:var(--noir);border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+.msubmit:hover{background:var(--vert-dark);}
+.mnote{font-size:10px;color:#333;text-align:center;margin-top:8px;}
+.msuccess{text-align:center;padding:20px 0;}
+.msuccess-icon{font-size:40px;margin-bottom:12px;}
+.msuccess h4{font-size:16px;font-weight:800;color:var(--blanc);margin-bottom:8px;}
+.msuccess p{font-size:13px;color:#555;line-height:1.5;}
+
+/* BLOC DETAIL INSCRIPTION */
+.det-inscr{background:#0d1f18;border:1px solid rgba(0,194,124,.2);border-radius:10px;padding:14px;margin-top:14px;}
+.det-inscr h4{font-size:13px;font-weight:700;color:var(--vert);margin-bottom:4px;}
+.det-inscr p{font-size:12px;color:#4a8a4a;margin-bottom:10px;line-height:1.5;}
+.det-inscr-btn{width:100%;background:transparent;border:1px solid var(--vert);color:var(--vert);border-radius:7px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;}
+.det-inscr-btn:hover{background:rgba(0,194,124,.1);}
+</style>
+</head>
+<body>
+
+
+<!-- BANNIERE INSCRIPTION -->
+<div class="inscr-banner" id="inscr-banner">
+  <div class="ib-text">📬 <strong>Recevez les RDV de votre zone chaque matin</strong> — gratuit, sans engagement</div>
+  <button class="ib-btn" onclick="openModal('alert')">S'inscrire en 30 secondes →</button>
+</div>
+
+<nav>
+  <div class="logo">RDV<span>Pro</span> <span style="font-size:10px;color:#333;font-weight:400">Cuisine</span></div>
+  <div class="nav-r">
+    <button class="cart-btn hide" id="nav-cart" onclick="goSec('panier')">
+      🛒 Panier
+      <span class="cart-count" id="cart-count">0</span>
+      <span style="font-size:11px;opacity:.7" id="cart-total-nav"></span>
+    </button>
+    <span class="admin-link" id="adminlink">Admin</span>
+  </div>
+</nav>
+
+<!-- CATALOGUE -->
+<div id="s-cat">
+  <div class="hero-mini">
+    <div class="hm-grid"></div>
+    <div class="hm-content">
+      <div class="hm-tag">RDV Cuisine — Qualifiés & Exclusifs</div>
+      <h1>Des prospects qui vous attendent.</h1>
+      <p>Budget confirmé · Date fixée · Propriétaire vérifié · Garantie remplacement si no-show</p>
+      <div class="hm-stats">
+        <div class="hms"><div class="hms-n" id="st">0</div><div class="hms-l">RDV disponibles</div></div>
+        <div class="hms"><div class="hms-n">175€</div><div class="hms-l">par RDV</div></div>
+        <div class="hms"><div class="hms-n">100%</div><div class="hms-l">exclusifs</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="garantie-bar">
+    <span>🛡️ <strong>Garantie remplacement :</strong> Si le prospect ne se présente pas, nous remplaçons le RDV gratuitement — sans condition.</span>
+  </div>
+  <div class="body">
+    <div class="dbanner hide" id="dban">ℹ️ Mode démonstration — vos vrais RDV apparaîtront ici automatiquement.</div>
+
+    <div class="filters">
+      <div class="fb on" id="fb0" onclick="doFilt('',this)">Tous</div>
+      <div class="fb" onclick="doFilt('75',this)">Paris (75)</div>
+      <div class="fb" onclick="doFilt('92',this)">Hauts-de-Seine (92)</div>
+      <div class="fb" onclick="doFilt('93',this)">Seine-Saint-Denis (93)</div>
+      <div class="fb" onclick="doFilt('94',this)">Val-de-Marne (94)</div>
+      <div class="fb" onclick="doFilt('78',this)">Yvelines (78)</div>
+      <div class="fb" onclick="doFilt('69',this)">Lyon (69)</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="s-tot">0</div><div class="stat-l">RDV disponibles</div></div>
+      <div class="stat"><div class="stat-n" style="color:var(--vert)">100%</div><div class="stat-l">Qualifiés tél.</div></div>
+      <div class="stat"><div class="stat-n">8k€+</div><div class="stat-l">Budget minimum</div></div>
+    </div>
+    <div class="grid" id="grid"><div class="loading">Chargement des RDV...</div></div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div id="s-det" class="hide">
+  <div style="padding:20px;">
+    <span class="back" id="backbtn-det">← Retour</span>
+    <div style="height:12px"></div>
+    <div class="dgrid">
+      <div class="dmain">
+        <div class="dmain-top">
+          <div class="dmain-top-grid"></div>
+          <h2 id="dvil"></h2>
+          <div class="dmain-meta" id="dmet"></div>
+        </div>
+        <div class="dmain-body">
+          <div class="dniche-badge" id="dniche"></div>
+          <div class="dsec">Détails du projet</div>
+          <div class="drow"><span class="drl">Code postal</span><span class="drv" id="dcp"></span></div>
+          <div class="drow"><span class="drl">Profil</span><span class="drv" id="dpro"></span></div>
+          <div class="drow"><span class="drl">Nature des travaux</span><span class="drv" id="dtra"></span></div>
+          <div class="drow"><span class="drl">Budget confirmé</span><span class="drv green" id="dbud"></span></div>
+          <div class="drow"><span class="drl">Délai projet</span><span class="drv" id="ddel"></span></div>
+          <div class="rdv-box">
+            <h4>📅 RDV confirmé par téléphone</h4>
+            <p id="drdv"></p>
+          </div>
+          <div class="dsec">Coordonnées du prospect</div>
+          <div class="lckd">
+            <div style="font-size:22px">🔒</div>
+            <p>Nom, téléphone et adresse transmis<br>instantanément après paiement.</p>
+          </div>
+          <div class="det-inscr">
+            <h4>📬 Pas encore prêt ?</h4>
+            <p>Inscrivez-vous pour recevoir les RDV disponibles dans votre zone chaque matin.</p>
+            <button class="det-inscr-btn" onclick="openModal('alert')">Recevoir les alertes gratuitement →</button>
+          </div>
+        </div>
+      </div>
+      <div class="pbox">
+        <h3>Débloquer ce RDV</h3>
+        <div class="prow"><span class="prow-l" id="pdesc"></span><span class="prow-r" id="pht"></span></div>
+        <div class="prow"><span class="prow-l">TVA 20%</span><span class="prow-r" id="ptva" style="color:#444"></span></div>
+        <div class="ptot"><span style="color:#666">Total TTC</span><span id="pttc"></span></div>
+        <button class="paybtn-direct" id="paybtn-direct">Payer maintenant →</button>
+        <button class="paybtn-cart" id="paybtn-cart">+ Ajouter au panier</button>
+        <div class="trust-list">
+          <div class="tl-item">🔒 Paiement sécurisé Stripe</div>
+          <div class="tl-item">✓ RDV exclusif — non revendu</div>
+          <div class="tl-item">⚡ Coordonnées transmises instantanément</div>
+        </div>
+        <div class="garantie-mini">🛡️ <strong>Garantie remplacement</strong> — RDV non honoré remplacé gratuitement, sans condition.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANIER -->
+<div id="s-panier" class="hide">
+  <div style="padding:20px;">
+    <div class="panier-head">
+      <span class="back" id="backbtn-panier">← Retour</span>
+      <h2>Mon panier</h2>
+    </div>
+    <div class="panier-grid">
+      <div>
+        <div class="panier-items" id="panier-items">
+          <div class="panier-empty"><div>🛒</div>Votre panier est vide</div>
+        </div>
+      </div>
+      <div class="order-box">
+        <h3>Résumé de commande</h3>
+        <div id="order-lines"></div>
+        <div class="or-ht" style="margin-top:8px"><span>Total HT</span><span id="tot-ht" style="color:#666"></span></div>
+        <div class="or-ht"><span>TVA 20%</span><span id="tot-tva" style="color:#555"></span></div>
+        <div class="or-tot"><span>Total TTC</span><span id="tot-ttc"></span></div>
+        <button class="pay-btn" id="pay-all-btn">Payer tous les RDV →</button>
+        <div class="pay-note">Paiement sécurisé Stripe · Coordonnées transmises instantanément</div>
+        <div class="garantie-mini" style="margin-top:12px">🛡️ Garantie remplacement sur chaque RDV acheté</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="s-adminlogin" class="hide">
+  <div class="abox">
+    <div class="atitle">RDV<span>Pro</span></div>
+    <div class="asub">Accès administrateur</div>
+    <label class="lbl">Mot de passe</label>
+    <input class="finp" type="password" id="apw" placeholder="••••••••">
+    <button class="bbtn" id="albtn">Accéder</button>
+    <div class="lerr" id="alerr"></div>
+    <span class="back-cat" id="backcatbtn">← Retour</span>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="s-adm" class="hide">
+  <div class="asb">
+    <div class="asblogo">RDV<span>Pro</span></div>
+    <div style="padding:8px 0">
+      <div class="asi on"><span class="asd" style="background:var(--vert)"></span>Dashboard</div>
+      <div class="asi"><span class="asd" style="background:#fff"></span>Tous les RDV</div>
+      <div class="asi"><span class="asd" style="background:var(--rouge)"></span>Vendus</div>
+      <div class="asi" id="admcatbtn"><span class="asd"></span>Vue catalogue</div>
+      <div class="asi" id="admlogout"><span class="asd"></span>Déconnexion</div>
+    </div>
+  </div>
+  <div class="amain">
+    <div class="kpis">
+      <div class="kpi"><div class="kv" id="at">0</div><div class="kl">Total RDV</div></div>
+      <div class="kpi"><div class="kv" id="adispo" style="color:var(--vert)">0</div><div class="kl">Disponibles</div></div>
+      <div class="kpi"><div class="kv" id="avendu" style="color:var(--rouge)">0</div><div class="kl">Vendus</div></div>
+      <div class="kpi"><div class="kv" id="aca" style="color:var(--vert)">0€</div><div class="kl">CA total</div></div>
+    </div>
+    <div class="atbl">
+      <div class="atblh">Tous les RDV cuisine <span class="refbtn" id="refbtn">Actualiser</span></div>
+      <table>
+        <thead><tr><th>Ville</th><th>CP</th><th>Travaux</th><th>Budget</th><th>Date RDV</th><th>Prix</th><th>Statut</th></tr></thead>
+        <tbody id="atbody"><tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- BARRE PANIER -->
+<div id="panier-bar">
+  <div class="pb-info">
+    <div class="pb-count" id="pb-count">0 RDV sélectionné</div>
+    <div class="pb-total" id="pb-total">0€ TTC</div>
+  </div>
+  <div class="pb-btns">
+    <button class="pb-voir" onclick="goSec('panier')">Voir le panier</button>
+    <button class="pb-pay" id="pb-pay-btn">Payer →</button>
+  </div>
+</div>
+
+
+<!-- MODAL INSCRIPTION -->
+<div class="modal-overlay hide" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content-alert">
+      <div class="modal-icon">📬</div>
+      <h3>Alertes RDV quotidiennes</h3>
+      <p class="modal-sub">Recevez chaque matin les RDV cuisine disponibles dans votre zone. Gratuit, sans engagement.</p>
+      <div class="modal-benefits">
+        <div class="mb">✓ RDV filtrés par votre département</div>
+        <div class="mb">✓ Email chaque matin à 8h</div>
+        <div class="mb">✓ Achetez en 1 clic depuis l'email</div>
+        <div class="mb">✓ Désabonnement en 1 clic</div>
+      </div>
+      <div class="mform">
+        <div class="mrow">
+          <input class="minp" type="text" id="m-prenom" placeholder="Prénom *">
+          <input class="minp" type="text" id="m-nom" placeholder="Nom *">
+        </div>
+        <input class="minp" type="email" id="m-email" placeholder="Email professionnel *">
+        <input class="minp" type="tel" id="m-tel" placeholder="Téléphone">
+        <select class="mselect" id="m-dept">
+          <option value="">Votre département principal *</option>
+          <option value="75">Paris (75)</option>
+          <option value="92">Hauts-de-Seine (92)</option>
+          <option value="93">Seine-Saint-Denis (93)</option>
+          <option value="94">Val-de-Marne (94)</option>
+          <option value="78">Yvelines (78)</option>
+          <option value="77">Seine-et-Marne (77)</option>
+          <option value="91">Essonne (91)</option>
+          <option value="95">Val-d'Oise (95)</option>
+          <option value="69">Lyon / Rhône (69)</option>
+          <option value="38">Isère (38)</option>
+          <option value="33">Gironde (33)</option>
+          <option value="31">Haute-Garonne (31)</option>
+          <option value="13">Bouches-du-Rhône (13)</option>
+          <option value="59">Nord (59)</option>
+        </select>
+        <button class="msubmit" onclick="submitInscription()">Recevoir les alertes gratuitement →</button>
+        <div class="mnote">Sans engagement · Désabonnement en 1 clic</div>
+      </div>
+    </div>
+    <div class="modal-content hide" id="modal-success">
+      <div class="msuccess">
+        <div class="msuccess-icon">🎉</div>
+        <h4>Vous êtes inscrit !</h4>
+        <p>Vous recevrez vos premiers RDV cuisine demain matin à 8h dans votre boîte mail.</p>
+      </div>
+    </div>
+    <div class="modal-content hide" id="modal-pay">
+      <div class="modal-icon">🍳</div>
+      <h3>Finalisez votre commande</h3>
+      <p class="modal-sub">Créez votre compte pour recevoir les coordonnées de vos RDV et les alertes quotidiennes dans votre zone.</p>
+      <div class="modal-benefits">
+        <div class="mb">✓ Coordonnées transmises instantanément</div>
+        <div class="mb">✓ Alertes RDV quotidiennes incluses</div>
+        <div class="mb">✓ Garantie remplacement si no-show</div>
+      </div>
+      <div class="mform">
+        <div class="mrow">
+          <input class="minp" type="text" id="mp-prenom" placeholder="Prénom *">
+          <input class="minp" type="text" id="mp-nom" placeholder="Nom *">
+        </div>
+        <input class="minp" type="email" id="mp-email" placeholder="Email professionnel *">
+        <input class="minp" type="tel" id="mp-tel" placeholder="Téléphone *">
+        <select class="mselect" id="mp-dept">
+          <option value="">Votre département *</option>
+          <option value="75">Paris (75)</option>
+          <option value="92">Hauts-de-Seine (92)</option>
+          <option value="93">Seine-Saint-Denis (93)</option>
+          <option value="94">Val-de-Marne (94)</option>
+          <option value="78">Yvelines (78)</option>
+          <option value="77">Seine-et-Marne (77)</option>
+          <option value="91">Essonne (91)</option>
+          <option value="95">Val-d'Oise (95)</option>
+          <option value="69">Lyon / Rhône (69)</option>
+          <option value="38">Isère (38)</option>
+          <option value="33">Gironde (33)</option>
+          <option value="31">Haute-Garonne (31)</option>
+        </select>
+        <button class="msubmit" onclick="submitAndPay()">Continuer vers le paiement →</button>
+        <div class="mnote">Paiement sécurisé Stripe · Sans engagement</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+var modalMode = 'alert';
+
+function openModal(mode) {
+  modalMode = mode || 'alert';
+  document.getElementById('modal-overlay').classList.remove('hide');
+  document.getElementById('modal-content-alert').classList.remove('hide');
+  document.getElementById('modal-success').classList.add('hide');
+  document.getElementById('modal-pay').classList.add('hide');
+  if (mode === 'pay') {
+    document.getElementById('modal-content-alert').classList.add('hide');
+    document.getElementById('modal-pay').classList.remove('hide');
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hide');
+}
+
+function submitInscription() {
+  var prenom = document.getElementById('m-prenom').value.trim();
+  var nom = document.getElementById('m-nom').value.trim();
+  var email = document.getElementById('m-email').value.trim();
+  var dept = document.getElementById('m-dept').value;
+  if (!prenom || !email || !dept) { alert('Merci de remplir les champs obligatoires.'); return; }
+  
+  // Enregistrer dans Airtable
+  var tel = document.getElementById('m-tel').value.trim();
+  fetch('https://api.airtable.com/v0/' + BID + '/Cuisinistes', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Alerte catalogue' } })
+  }).catch(function() {});
+  
+  document.getElementById('modal-content-alert').classList.add('hide');
+  document.getElementById('modal-success').classList.remove('hide');
+  setTimeout(function() { closeModal(); }, 3000);
+}
+
+function submitAndPay() {
+  var prenom = document.getElementById('mp-prenom').value.trim();
+  var email = document.getElementById('mp-email').value.trim();
+  var tel = document.getElementById('mp-tel').value.trim();
+  var dept = document.getElementById('mp-dept').value;
+  var nom = document.getElementById('mp-nom').value.trim();
+  if (!prenom || !email || !tel || !dept) { alert('Merci de remplir tous les champs.'); return; }
+  
+  // Enregistrer dans Airtable
+  fetch('https://api.airtable.com/v0/' + BID + '/Cuisinistes', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement' } })
+  }).catch(function() {});
+  
+  closeModal();
+  window.location.href = LNKR;
+}
+
+// Fermer modal en cliquant dehors
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'modal-overlay') closeModal();
+});
+
+var AT='patFDqjmeWwMiCges.c6a6535e01a0af01e897481a845e83dffd09a89627db6d87ae799cc3294cb842';
+var BID='appYHVJ2S2hk9S6BL';
+var TBR='RDV';
+var LNKR='https://buy.stripe.com/3cI6oJ3BF4he00S7jF4sE01';
+var ADMINPWD='admin2024';
+
+var DEMO=[
+  {id:'d1',ville:'Paris 15e',cp:'75015',niche:'Cuisine compl\u00e8te',pro:'Propri\u00e9taire',tra:'R\u00e9fection compl\u00e8te \u2014 d\u00e9pose et refonte totale',bud:'15 000\u20ac',del:"D'ici 3 mois",rdv:'Jeudi 24 juillet \u00e0 14h00',px:175,st:'Disponible'},
+  {id:'d2',ville:'Versailles',cp:'78000',niche:'Cuisine haut de gamme',pro:'Propri\u00e9taire',tra:'Cuisine haut de gamme avec \u00eelot central sur mesure',bud:'22 000\u20ac',del:"D'ici 3 mois",rdv:'Vendredi 25 juillet \u00e0 10h00',px:175,st:'Disponible'},
+  {id:'d3',ville:'Boulogne-Billancourt',cp:'92100',niche:'Cuisine ouverte',pro:'Propri\u00e9taire',tra:'Cuisine ouverte sur salon \u2014 abattage cloison + refonte',bud:'18 000\u20ac',del:'D\u00e8s que possible',rdv:'Lundi 28 juillet \u00e0 9h00',px:175,st:'Disponible'},
+  {id:'d4',ville:'Lyon 6e',cp:'69006',niche:'Cuisine compl\u00e8te',pro:'Propri\u00e9taire',tra:'Cuisine \u00e9quip\u00e9e compl\u00e8te \u2014 cuisine ferm\u00e9e',bud:'12 000\u20ac',del:"D'ici 6 mois",rdv:'Mardi 29 juillet \u00e0 11h00',px:175,st:'Disponible'},
+  {id:'d5',ville:'Neuilly-sur-Seine',cp:'92200',niche:'Cuisine haut de gamme',pro:'Propri\u00e9taire',tra:'Cuisine premium sur mesure \u2014 budget \u00e9lev\u00e9',bud:'35 000\u20ac',del:"D'ici 3 mois",rdv:'Mercredi 30 juillet \u00e0 14h00',px:175,st:'Disponible'},
+  {id:'d6',ville:'Grenoble',cp:'38000',niche:'Construction neuve',pro:'Propri\u00e9taire',tra:'Cuisine neuve \u2014 maison en construction',bud:'14 000\u20ac',del:"D'ici 6 mois",rdv:'Jeudi 31 juillet \u00e0 9h30',px:175,st:'Disponible'},
+];
+
+var rdvs=[];var cur=null;var aDep='';var panier=[];
+
+function fetchAT(tbl,fml){
+  var url='https://api.airtable.com/v0/'+BID+'/'+encodeURIComponent(tbl)+'?pageSize=100';
+  if(fml)url+='&filterByFormula='+encodeURIComponent(fml);
+  return fetch(url,{headers:{'Authorization':'Bearer '+AT}}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();}).then(function(d){return d.records||[];});
+}
+
+function parse(recs){
+  return recs.map(function(r){
+    var f=r.fields||{};
+    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:f['Statut']||'Disponible'};
+  });
+}
+
+function loadRDV(){
+  document.getElementById('grid').innerHTML='<div class="loading">Chargement...</div>';
+  fetchAT(TBR,"Statut='Disponible'").then(function(recs){
+    rdvs=parse(recs);
+    if(!rdvs.length)throw new Error('empty');
+    document.getElementById('dban').classList.add('hide');
+    renderGrid(filt());
+  }).catch(function(){
+    rdvs=DEMO;
+    document.getElementById('dban').classList.remove('hide');
+    renderGrid(filt());
+  });
+}
+
+function loadAdmin(){
+  var tb=document.getElementById('atbody');
+  tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Chargement...</td></tr>';
+  fetchAT(TBR).then(function(recs){
+    var all=parse(recs);updAdm(all);
+    tb.innerHTML=all.map(function(r){return '<tr><td><strong>'+r.ville+'</strong></td><td>'+r.cp+'</td><td>'+r.tra+'</td><td>'+r.bud+'</td><td>'+r.rdv+'</td><td>'+r.px+'\u20ac</td><td><span class="pill '+(r.st==='Vendu'?'pv':'pd')+'">'+r.st+'</span></td></tr>';}).join('');
+  }).catch(function(){
+    updAdm(DEMO);
+    tb.innerHTML=DEMO.map(function(r){return '<tr><td><strong>'+r.ville+'</strong></td><td>'+r.cp+'</td><td>'+r.tra+'</td><td>'+r.bud+'</td><td>'+r.rdv+'</td><td>'+r.px+'\u20ac</td><td><span class="pill pd">Disponible</span></td></tr>';}).join('');
+  });
+}
+
+function updAdm(data){
+  var tot=data.length,dispo=data.filter(function(r){return r.st!=='Vendu';}).length,vendu=data.filter(function(r){return r.st==='Vendu';}).length,ca=data.filter(function(r){return r.st==='Vendu';}).reduce(function(s,r){return s+r.px;},0);
+  document.getElementById('at').textContent=tot;document.getElementById('adispo').textContent=dispo;document.getElementById('avendu').textContent=vendu;document.getElementById('aca').textContent=ca+'\u20ac';
+}
+
+function inCart(id){return panier.some(function(p){return p.id===id;});}
+
+function filt(){
+  var f=rdvs;
+
+  if(aDep)f=f.filter(function(r){return String(r.cp).indexOf(aDep)===0;});
+  return f;
+}
+
+function renderGrid(data){
+  document.getElementById('st').textContent=rdvs.length;
+  document.getElementById('s-tot').textContent=rdvs.length;
+  var g=document.getElementById('grid');
+  if(!data.length){g.innerHTML='<div class="loading">Aucun RDV disponible.</div>';return;}
+  g.innerHTML=data.map(function(r){
+    var ic=inCart(r.id);
+    return '<div class="card'+(ic?' in-cart':'')+'" id="card-'+r.id+'">'+
+      '<div class="card-top" onclick="openDet(\''+r.id+'\')">'+
+      '<div class="card-top-grid"></div>'+
+      '<div><div class="card-ville">'+r.ville+'</div><div class="card-cp">'+r.cp+'</div></div>'+
+      '<span class="card-badge">🍳 '+r.niche+'</span></div>'+
+      '<div class="card-body" onclick="openDet(\''+r.id+'\')">'+
+      '<div class="cf"><span class="cfl">Travaux</span><span class="cfv">'+r.tra+'</span></div>'+
+      '<div class="cf"><span class="cfl">Budget confirm\u00e9</span><span class="cfv green">'+r.bud+'</span></div>'+
+      '<div class="cf"><span class="cfl">Date RDV</span><span class="cfv green">'+r.rdv+'</span></div>'+
+      '<div class="cf"><span class="cfl">D\u00e9lai</span><span class="cfv">'+r.del+'</span></div>'+
+      '<div class="cf"><span class="cfl">Contact</span><span class="cfv blur">\u2022\u2022\u2022\u2022\u2022\u2022</span></div>'+
+      '</div>'+
+      '<div class="card-foot">'+
+      '<div><div class="prix">'+r.px+'\u20ac</div><div class="prix-sub">HT · excl.</div></div>'+
+      '<button class="btn-voir" onclick="event.stopPropagation();openDet(\''+r.id+'\')">Voir →</button>'+
+      '<button class="btn-cart '+(ic?'remove':'add')+'" id="btn-'+r.id+'" onclick="event.stopPropagation();toggleCart(\''+r.id+'\')">'+(ic?'\u2715 Retirer':'+ Panier')+'</button>'+
+      '</div></div>';
+  }).join('');
+}
+
+
+
+function doFilt(dep,btn){
+  aDep=dep;
+  document.querySelectorAll('.fb').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');renderGrid(filt());
+}
+
+function toggleCart(id){
+  var r=null;
+  for(var i=0;i<rdvs.length;i++){if(rdvs[i].id===id){r=rdvs[i];break;}}
+  if(!r)return;
+  if(inCart(id)){panier=panier.filter(function(p){return p.id!==id;});}else{panier.push(r);}
+  updateCartUI();
+  var card=document.getElementById('card-'+id);
+  var btn=document.getElementById('btn-'+id);
+  if(card){if(inCart(id))card.classList.add('in-cart');else card.classList.remove('in-cart');}
+  if(btn){if(inCart(id)){btn.className='btn-cart remove';btn.textContent='\u2715 Retirer';}else{btn.className='btn-cart add';btn.textContent='+ Panier';}}
+  if(cur&&cur.id===id)updateDetBtn();
+}
+
+function updateCartUI(){
+  var n=panier.length,tot=panier.reduce(function(s,r){return s+r.px;},0),ttc=Math.round(tot*1.2);
+  document.getElementById('cart-count').textContent=n;
+  document.getElementById('cart-total-nav').textContent=ttc+'\u20ac';
+  document.getElementById('pb-count').textContent=n+' RDV s\u00e9lectionn\u00e9'+(n>1?'s':'');
+  document.getElementById('pb-total').textContent=ttc+'\u20ac TTC';
+  var bar=document.getElementById('panier-bar'),nc=document.getElementById('nav-cart');
+  if(n>0){bar.classList.add('show');nc.classList.remove('hide');}else{bar.classList.remove('show');nc.classList.add('hide');}
+}
+
+function updateDetBtn(){
+  if(!cur)return;
+  var btn=document.getElementById('paybtn-cart');
+  if(inCart(cur.id)){btn.className='paybtn-cart in-cart';btn.textContent='\u2715 Retirer du panier';}
+  else{btn.className='paybtn-cart';btn.textContent='+ Ajouter au panier';}
+}
+
+function renderPanier(){
+  var items=document.getElementById('panier-items'),lines=document.getElementById('order-lines');
+  if(!panier.length){
+    items.innerHTML='<div class="panier-empty"><div>🛒</div>Votre panier est vide</div>';
+    lines.innerHTML='';
+    document.getElementById('tot-ht').textContent='0\u20ac';
+    document.getElementById('tot-tva').textContent='0\u20ac';
+    document.getElementById('tot-ttc').textContent='0\u20ac';
+    return;
+  }
+  var tot=panier.reduce(function(s,r){return s+r.px;},0),tva=Math.round(tot*0.2),ttc=tot+tva;
+  items.innerHTML=panier.map(function(r){
+    return '<div class="pi">'+
+      '<div class="pi-left">'+
+      '<div class="pi-ville">'+r.ville+'</div>'+
+      '<div class="pi-niche">🍳 '+r.niche+'</div>'+
+      '<div class="pi-sub">'+r.tra+'</div>'+
+      '<div class="pi-rdv">📅 '+r.rdv+'</div>'+
+      '</div>'+
+      '<div class="pi-right">'+
+      '<div class="pi-prix">'+r.px+'\u20ac</div>'+
+      '<button class="pi-del" onclick="toggleCart(\''+r.id+'\');renderPanier()">Retirer</button>'+
+      '</div></div>';
+  }).join('');
+  lines.innerHTML=panier.map(function(r){return '<div class="or"><span class="or-name">'+r.ville+' \u2014 '+r.niche+'</span><span class="or-prix">'+r.px+'\u20ac</span></div>';}).join('');
+  document.getElementById('tot-ht').textContent=tot+'\u20ac';
+  document.getElementById('tot-tva').textContent=tva+'\u20ac';
+  document.getElementById('tot-ttc').textContent=ttc+'\u20ac TTC';
+}
+
+function openDet(id){
+  cur=null;
+  for(var i=0;i<rdvs.length;i++){if(rdvs[i].id===id){cur=rdvs[i];break;}}
+  if(!cur)return;
+  document.getElementById('dvil').textContent=cur.ville;
+  document.getElementById('dmet').textContent='CP '+cur.cp+' \u00b7 RDV confirm\u00e9 \u00b7 Exclusif';
+  document.getElementById('dniche').textContent='🍳 '+cur.niche;
+  document.getElementById('dcp').textContent=cur.cp;
+  document.getElementById('dpro').textContent=cur.pro;
+  document.getElementById('dtra').textContent=cur.tra;
+  document.getElementById('dbud').textContent=cur.bud;
+  document.getElementById('ddel').textContent=cur.del;
+  document.getElementById('drdv').textContent=cur.rdv;
+  var ht=cur.px,tva=Math.round(ht*0.2);
+  document.getElementById('pdesc').textContent='RDV Cuisine \u2014 '+cur.ville;
+  document.getElementById('pht').textContent=ht+'\u20ac HT';
+  document.getElementById('ptva').textContent=tva+'\u20ac';
+  document.getElementById('pttc').textContent=(ht+tva)+'\u20ac TTC';
+  document.getElementById('paybtn-direct').onclick=function(){openModal('pay');};
+  document.getElementById('paybtn-cart').onclick=function(){toggleCart(cur.id);updateDetBtn();};
+  updateDetBtn();
+  goSec('det');
+}
+
+function goSec(s){
+  ['cat','det','panier','adminlogin','adm'].forEach(function(x){document.getElementById('s-'+x).classList.add('hide');});
+  document.getElementById('s-'+s).classList.remove('hide');
+  if(s==='panier')renderPanier();
+  window.scrollTo(0,0);
+}
+
+window.onload=function(){
+  loadRDV();
+  document.getElementById('adminlink').onclick=function(){goSec('adminlogin');};
+  document.getElementById('backbtn-det').onclick=function(){goSec('cat');};
+  document.getElementById('backbtn-panier').onclick=function(){goSec('cat');};
+  document.getElementById('admcatbtn').onclick=function(){goSec('cat');};
+  document.getElementById('admlogout').onclick=function(){goSec('cat');};
+  document.getElementById('refbtn').onclick=loadAdmin;
+  document.getElementById('pay-all-btn').onclick=function(){if(panier.length)openModal('pay');};
+  document.getElementById('pb-pay-btn').onclick=function(){if(panier.length)openModal('pay');};
+  document.getElementById('albtn').onclick=function(){
+    var pw=document.getElementById('apw').value,err=document.getElementById('alerr');
+    if(pw===ADMINPWD){err.textContent='';loadAdmin();goSec('adm');}
+    else{err.textContent='Mot de passe incorrect';setTimeout(function(){err.textContent='';},3000);}
+  };
+  document.getElementById('apw').onkeydown=function(e){if(e.key==='Enter')document.getElementById('albtn').onclick();};
+  document.getElementById('backcatbtn').onclick=function(){goSec('cat');};
+};
+</script>
+</body>
+</html>
