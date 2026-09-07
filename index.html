@@ -616,7 +616,7 @@ function parse(recs){
 
 function loadRDV(){
   document.getElementById('grid').innerHTML='<div class="loading">Chargement...</div>';
-  fetchAT(TBR,"Statut='Disponible'").then(function(recs){
+  fetchAT(TBR,"Statut='Confirmé'").then(function(recs){
     rdvs=parse(recs);
     if(!rdvs.length)throw new Error('empty');
     document.getElementById('dban').classList.add('hide');
