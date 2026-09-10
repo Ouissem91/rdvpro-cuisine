@@ -592,15 +592,36 @@ function submitAndPay() {
   var nom = document.getElementById('mp-nom').value.trim();
   if (!prenom || !email || !tel || !dept) { alert('Merci de remplir tous les champs et de sélectionner au moins un département.'); return; }
   
-  // Enregistrer dans Airtable
+  // Récupérer les IDs des RDV
+  var rdvIds = '';
+  var rdvVilles = '';
+  if (panier.length > 0) {
+    rdvIds = panier.map(function(r) { return r.id; }).join(',');
+    rdvVilles = panier.map(function(r) { return r.ville; }).join(',');
+  } else if (window._currentRdvId) {
+    rdvIds = window._currentRdvId;
+    rdvVilles = window._currentRdvVille || '';
+  }
+  
+  // Enregistrer cuisiniste dans Airtable
   fetch('https://api.airtable.com/v0/' + BID + '/Cuisinistes', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement' } })
+    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175 } })
   }).catch(function() {});
   
   closeModal();
-  window.location.href = LNKR;
+  
+  // Construire URL Stripe avec les métadonnées RDV
+  var stripeUrl = LNKR + 
+    '?prefilled_email=' + encodeURIComponent(email) +
+    '&client_reference_id=' + encodeURIComponent(rdvIds) +
+    '&metadata[rdv_ids]=' + encodeURIComponent(rdvIds) +
+    '&metadata[cuisiniste_email]=' + encodeURIComponent(email) +
+    '&metadata[cuisiniste_nom]=' + encodeURIComponent(prenom + ' ' + nom) +
+    '&metadata[cuisiniste_tel]=' + encodeURIComponent(tel);
+  
+  window.location.href = stripeUrl;
 }
 
 // Fermer modal en cliquant dehors
@@ -791,7 +812,14 @@ function openDet(id){
   document.getElementById('pht').textContent=ht+'\u20ac HT';
   document.getElementById('ptva').textContent=tva+'\u20ac';
   document.getElementById('pttc').textContent=(ht+tva)+'\u20ac TTC';
-  document.getElementById('paybtn-direct').onclick=function(){openModal('pay');};
+  document.getElementById('paybtn-direct').onclick=function(){
+    if(cur) {
+      // Stocker l'ID du RDV pour le paiement direct
+      window._currentRdvId = cur.id;
+      window._currentRdvVille = cur.ville;
+    }
+    openModal('pay');
+  };
   document.getElementById('paybtn-cart').onclick=function(){toggleCart(cur.id);updateDetBtn();};
   updateDetBtn();
   goSec('det');
