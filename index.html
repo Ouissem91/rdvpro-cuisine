@@ -611,17 +611,38 @@ function submitAndPay() {
   }).catch(function() {});
   
   closeModal();
-  
-  // Construire URL Stripe avec les métadonnées RDV
-  var stripeUrl = LNKR + 
-    '?prefilled_email=' + encodeURIComponent(email) +
-    '&client_reference_id=' + encodeURIComponent(rdvIds) +
-    '&metadata[rdv_ids]=' + encodeURIComponent(rdvIds) +
-    '&metadata[cuisiniste_email]=' + encodeURIComponent(email) +
-    '&metadata[cuisiniste_nom]=' + encodeURIComponent(prenom + ' ' + nom) +
-    '&metadata[cuisiniste_tel]=' + encodeURIComponent(tel);
-  
-  window.location.href = stripeUrl;
+
+  // Montant total : 175€ HT par RDV (17500 centimes), x nombre de RDV dans le panier
+  var nbRdv = panier.length > 0 ? panier.length : 1;
+  var montantCentimes = nbRdv * 17500;
+
+  // Créer une vraie session Stripe Checkout via la fonction serverless Vercel.
+  // Remplace l'ancien Payment Link (LNKR) qui ne transmettait PAS les metadata
+  // à Stripe — c'était la cause du problème (coordonnées jamais reçues après paiement).
+  fetch('/api/create-checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      rdvIds: rdvIds,
+      email: email,
+      nom: prenom + ' ' + nom,
+      tel: tel,
+      montantCentimes: montantCentimes
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Erreur lors de la création du paiement. Réessaie ou contacte le support.');
+      console.error(data.error);
+    }
+  })
+  .catch(function(err) {
+    alert('Erreur réseau lors du paiement.');
+    console.error(err);
+  });
 }
 
 // Fermer modal en cliquant dehors
