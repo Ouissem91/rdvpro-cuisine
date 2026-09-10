@@ -27,6 +27,18 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Paramètres manquants (rdvIds, email, montantCentimes)' });
     }
 
+    // Convertit un numéro français local (0627890053) au format international
+    // requis par Brevo pour le SMS (+33627890053). Laisse intact si déjà au
+    // format international (commence par +).
+    function formatTelFR(numero) {
+      if (!numero) return '';
+      var n = String(numero).replace(/[\s.\-()]/g, ''); // retire espaces, points, tirets, parenthèses
+      if (n.startsWith('+')) return n;
+      if (n.startsWith('0')) return '+33' + n.slice(1);
+      return n;
+    }
+    const telFormate = formatTelFR(tel);
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
@@ -47,7 +59,7 @@ module.exports = async (req, res) => {
         rdv_ids: rdvIds,
         cuisiniste_email: email,
         cuisiniste_nom: nom || '',
-        cuisiniste_tel: tel || '',
+        cuisiniste_tel: telFormate,
       },
       // IMPORTANT : Make écoute l'événement "payment_intent.succeeded", pas
       // "checkout.session.completed". Or les metadata de la Session ne sont PAS
@@ -58,7 +70,7 @@ module.exports = async (req, res) => {
           rdv_ids: rdvIds,
           cuisiniste_email: email,
           cuisiniste_nom: nom || '',
-          cuisiniste_tel: tel || '',
+          cuisiniste_tel: telFormate,
         },
       },
       customer_email: email,
