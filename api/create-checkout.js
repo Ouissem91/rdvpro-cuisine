@@ -51,4 +51,24 @@ module.exports = async (req, res) => {
       },
       // IMPORTANT : Make écoute l'événement "payment_intent.succeeded", pas
       // "checkout.session.completed". Or les metadata de la Session ne sont PAS
-      //
+      // automatiquement copiées sur le Payment Intent — il faut les dupliquer ici
+      // explicitement, sinon Make recevra à nouveau des metadata vides.
+      payment_intent_data: {
+        metadata: {
+          rdv_ids: rdvIds,
+          cuisiniste_email: email,
+          cuisiniste_nom: nom || '',
+          cuisiniste_tel: tel || '',
+        },
+      },
+      customer_email: email,
+      success_url: `${req.headers.origin}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin}/`,
+    });
+
+    return res.status(200).json({ url: session.url });
+  } catch (err) {
+    console.error('Erreur création session Stripe:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
