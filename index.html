@@ -614,7 +614,9 @@ function submitAndPay() {
 
   // Montant total : 175€ HT par RDV (17500 centimes), x nombre de RDV dans le panier
   var nbRdv = panier.length > 0 ? panier.length : 1;
-  var montantCentimes = nbRdv * 17500;
+  // ⚠️ MODE TEST : montant forcé à 0,50€ pour valider le flux Stripe → Make → Airtable/Brevo
+  // sans payer le vrai prix. À REMETTRE à "nbRdv * 17500" une fois le test validé !
+  var montantCentimes = 50;
 
   // Créer une vraie session Stripe Checkout via la fonction serverless Vercel.
   // Remplace l'ancien Payment Link (LNKR) qui ne transmettait PAS les metadata
