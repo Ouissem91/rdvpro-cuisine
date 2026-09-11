@@ -683,7 +683,7 @@ function fetchAT(tbl,fml){
 function parse(recs){
   return recs.map(function(r){
     var f=r.fields||{};
-    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:f['Statut']||'Disponible',da:f['Date achat']||null};
+    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:f['Statut']||'Disponible',da:f["Date d'achat"]||f['Date achat']||null};
   });
 }
 
@@ -726,7 +726,7 @@ function loadRDV(){
     // RDV vendus r\u00e9cemment : charg\u00e9s et fusionn\u00e9s APR\u00c8S coup, sans jamais bloquer
     // ni casser l'affichage principal si cette requ\u00eate ou son traitement \u00e9choue.
     var seuil=new Date(Date.now()-3*24*60*60*1000).toISOString();
-    fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date achat},DATETIME_PARSE('"+seuil+"')))").then(function(soldRecs){
+    fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date d'achat},DATETIME_PARSE('"+seuil+"')))").then(function(soldRecs){
       try{
         var sold=parse(soldRecs);
         if(sold.length){
