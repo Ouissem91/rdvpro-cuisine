@@ -94,6 +94,13 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 .btn-cart.add{background:var(--accent);color:#fff;}
 .btn-cart.add:hover{background:var(--accent-dark);}
 .btn-cart.remove{background:var(--red);color:#fff;}
+.card.vendu{opacity:.72;}
+.card.vendu:hover{transform:none;box-shadow:none;border-color:var(--border);}
+.card.vendu .card-top{background:#3D4466;}
+.card-badge.vendu-badge{background:var(--red);}
+.vendu-strip{background:#FEE2E2;color:#991B1B;font-size:11px;font-weight:700;padding:6px 16px;display:flex;align-items:center;gap:6px;}
+.vendu-time{font-weight:400;color:#B91C1C;margin-left:auto;}
+.cfv.locked{color:#C7CDE8;}
 
 /* BARRE PANIER */
 #panier-bar{position:fixed;bottom:0;left:0;right:0;background:var(--ink);border-top:2px solid var(--accent);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;z-index:200;transform:translateY(100%);transition:transform .3s;}
@@ -676,15 +683,48 @@ function fetchAT(tbl,fml){
 function parse(recs){
   return recs.map(function(r){
     var f=r.fields||{};
-    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:f['Statut']||'Disponible'};
+    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:f['Statut']||'Disponible',da:f['Date achat']||null};
   });
+}
+
+// Texte relatif style "il y a 2h" / "hier" / "il y a 3 jours" pour les RDV vendus récemment
+function relTime(dateStr){
+  if(!dateStr)return 'R\u00e9cemment';
+  var d=new Date(dateStr);
+  if(isNaN(d.getTime()))return 'R\u00e9cemment';
+  var diffMs=Date.now()-d.getTime();
+  var h=Math.floor(diffMs/3600000);
+  if(h<1)return "il y a quelques minutes";
+  if(h<24)return "il y a "+h+"h";
+  var j=Math.floor(h/24);
+  if(j===1)return "hier";
+  return "il y a "+j+" jours";
+}
+
+// Mélange les RDV vendus récemment au milieu des RDV disponibles (preuve sociale),
+// plutôt que de les regrouper au début ou à la fin.
+function mergeAvecVendus(avail,sold){
+  if(!sold.length)return avail;
+  if(!avail.length)return sold;
+  var result=[],interval=Math.max(2,Math.round(avail.length/sold.length)),si=0;
+  for(var i=0;i<avail.length;i++){
+    result.push(avail[i]);
+    if((i+1)%interval===0&&si<sold.length)result.push(sold[si++]);
+  }
+  while(si<sold.length)result.push(sold[si++]);
+  return result;
 }
 
 function loadRDV(){
   document.getElementById('grid').innerHTML='<div class="loading">Chargement...</div>';
-  fetchAT(TBR,"Statut='Confirmé'").then(function(recs){
-    rdvs=parse(recs);
-    if(!rdvs.length)throw new Error('empty');
+  var seuil=new Date(Date.now()-3*24*60*60*1000).toISOString();
+  Promise.all([
+    fetchAT(TBR,"Statut='Confirmé'"),
+    fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date achat},DATETIME_PARSE('"+seuil+"')))")
+  ]).then(function(results){
+    var avail=parse(results[0]),sold=parse(results[1]);
+    if(!avail.length&&!sold.length)throw new Error('empty');
+    rdvs=mergeAvecVendus(avail,sold);
     document.getElementById('dban').classList.add('hide');
     renderGrid(filt());
   }).catch(function(){
@@ -721,11 +761,27 @@ function filt(){
 }
 
 function renderGrid(data){
-  document.getElementById('st').textContent=rdvs.length;
-  document.getElementById('s-tot').textContent=rdvs.length;
+  var nbDispo=data.filter(function(r){return r.st!=='Vendu';}).length;
+  document.getElementById('st').textContent=nbDispo;
+  document.getElementById('s-tot').textContent=nbDispo;
   var g=document.getElementById('grid');
   if(!data.length){g.innerHTML='<div class="loading">Aucun RDV disponible.</div>';return;}
   g.innerHTML=data.map(function(r){
+    var vendu=r.st==='Vendu';
+    if(vendu){
+      return '<div class="card vendu" id="card-'+r.id+'">'+
+        '<div class="vendu-strip">🔴 Vendu r\u00e9cemment<span class="vendu-time">'+relTime(r.da)+'</span></div>'+
+        '<div class="card-top">'+
+        '<div class="card-top-grid"></div>'+
+        '<div><div class="card-ville">'+r.ville+'</div><div class="card-cp">'+r.cp+'</div></div>'+
+        '<span class="card-badge vendu-badge">🍳 '+r.niche+'</span></div>'+
+        '<div class="card-body">'+
+        '<div class="cf"><span class="cfl">Travaux</span><span class="cfv locked">'+r.tra+'</span></div>'+
+        '<div class="cf"><span class="cfl">Budget confirm\u00e9</span><span class="cfv locked">'+r.bud+'</span></div>'+
+        '</div>'+
+        '<div class="card-foot"><div><div class="prix" style="color:var(--ink-3)">Indisponible</div></div></div>'+
+        '</div>';
+    }
     var ic=inCart(r.id);
     return '<div class="card'+(ic?' in-cart':'')+'" id="card-'+r.id+'">'+
       '<div class="card-top" onclick="openDet(\''+r.id+'\')">'+
