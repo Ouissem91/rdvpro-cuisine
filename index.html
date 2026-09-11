@@ -717,16 +717,24 @@ function mergeAvecVendus(avail,sold){
 
 function loadRDV(){
   document.getElementById('grid').innerHTML='<div class="loading">Chargement...</div>';
-  var seuil=new Date(Date.now()-3*24*60*60*1000).toISOString();
-  Promise.all([
-    fetchAT(TBR,"Statut='Confirmé'"),
-    fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date achat},DATETIME_PARSE('"+seuil+"')))")
-  ]).then(function(results){
-    var avail=parse(results[0]),sold=parse(results[1]);
-    if(!avail.length&&!sold.length)throw new Error('empty');
-    rdvs=mergeAvecVendus(avail,sold);
+  fetchAT(TBR,"Statut='Confirmé'").then(function(recs){
+    var avail=parse(recs);
+    if(!avail.length)throw new Error('empty');
+    rdvs=avail;
     document.getElementById('dban').classList.add('hide');
     renderGrid(filt());
+    // RDV vendus r\u00e9cemment : charg\u00e9s et fusionn\u00e9s APR\u00c8S coup, sans jamais bloquer
+    // ni casser l'affichage principal si cette requ\u00eate ou son traitement \u00e9choue.
+    var seuil=new Date(Date.now()-3*24*60*60*1000).toISOString();
+    fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date achat},DATETIME_PARSE('"+seuil+"')))").then(function(soldRecs){
+      try{
+        var sold=parse(soldRecs);
+        if(sold.length){
+          rdvs=mergeAvecVendus(avail,sold);
+          renderGrid(filt());
+        }
+      }catch(e){console.error('Erreur affichage RDV vendus r\u00e9cents (ignor\u00e9e, catalogue non affect\u00e9) :',e);}
+    }).catch(function(err){console.error('Chargement RDV vendus r\u00e9cents \u00e9chou\u00e9 (ignor\u00e9, catalogue non affect\u00e9) :',err);});
   }).catch(function(){
     rdvs=DEMO;
     document.getElementById('dban').classList.remove('hide');
