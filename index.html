@@ -725,10 +725,10 @@ function loadRDV(){
     renderGrid(filt());
     // RDV vendus r\u00e9cemment : charg\u00e9s et fusionn\u00e9s APR\u00c8S coup, sans jamais bloquer
     // ni casser l'affichage principal si cette requ\u00eate ou son traitement \u00e9choue.
-    var seuil=new Date(Date.now()-3*24*60*60*1000).toISOString();
-    fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date d'achat},DATETIME_PARSE('"+seuil+"')))").then(function(soldRecs){
+    fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date d'achat},DATEADD(TODAY(),-3,'days')))").then(function(soldRecs){
       try{
         var sold=parse(soldRecs);
+        console.info('RDV vendus r\u00e9cemment trouv\u00e9s :',sold.length);
         if(sold.length){
           rdvs=mergeAvecVendus(avail,sold);
           renderGrid(filt());
