@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { rdvIds, email, nom, tel, montantCentimes } = req.body;
+    const { rdvIds, email, nom, tel, societe, adresse, siret, montantCentimes } = req.body;
 
     if (!rdvIds || !email || !montantCentimes) {
       return res.status(400).json({ error: 'Paramètres manquants (rdvIds, email, montantCentimes)' });
@@ -39,6 +39,29 @@ module.exports = async (req, res) => {
     }
     const telFormate = formatTelFR(tel);
 
+    // Stripe limite chaque custom_field de facture à 30 caractères (nom ET valeur).
+    // On tronque défensivement pour éviter une erreur API si la société/adresse
+    // saisie est plus longue (le SIRET fait toujours 14 caractères, jamais tronqué).
+    function tronque30(v) {
+      return v ? String(v).slice(0, 30) : '';
+    }
+
+    const metadataCommune = {
+      rdv_ids: rdvIds,
+      cuisiniste_email: email,
+      cuisiniste_nom: nom || '',
+      cuisiniste_tel: telFormate,
+      cuisiniste_societe: societe || '',
+      cuisiniste_adresse: adresse || '',
+      cuisiniste_siret: siret || '',
+    };
+
+    // Custom fields affichés directement sur le PDF de la facture Stripe.
+    const invoiceCustomFields = [];
+    if (societe) invoiceCustomFields.push({ name: 'Société', value: tronque30(societe) });
+    if (siret) invoiceCustomFields.push({ name: 'SIRET', value: tronque30(siret) });
+    if (adresse) invoiceCustomFields.push({ name: 'Adresse', value: tronque30(adresse) });
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
@@ -55,25 +78,27 @@ module.exports = async (req, res) => {
         },
       ],
       // Metadata posées sur la Session (utile pour l'admin Stripe / recherche).
-      metadata: {
-        rdv_ids: rdvIds,
-        cuisiniste_email: email,
-        cuisiniste_nom: nom || '',
-        cuisiniste_tel: telFormate,
-      },
+      metadata: metadataCommune,
       // IMPORTANT : Make écoute l'événement "payment_intent.succeeded", pas
       // "checkout.session.completed". Or les metadata de la Session ne sont PAS
       // automatiquement copiées sur le Payment Intent — il faut les dupliquer ici
       // explicitement, sinon Make recevra à nouveau des metadata vides.
       payment_intent_data: {
-        metadata: {
-          rdv_ids: rdvIds,
-          cuisiniste_email: email,
-          cuisiniste_nom: nom || '',
-          cuisiniste_tel: telFormate,
-        },
+        metadata: metadataCommune,
       },
       customer_email: email,
+      // Crée systématiquement un Customer Stripe (nécessaire pour que la facture
+      // ci-dessous soit correctement rattachée, avec un historique consultable).
+      customer_creation: 'always',
+      // Génère automatiquement une facture Stripe après paiement réussi, avec
+      // Société / SIRET / Adresse affichés en "custom fields" sur le PDF.
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: societe ? `RDV cuisine — ${societe}` : 'RDV cuisine',
+          custom_fields: invoiceCustomFields.length ? invoiceCustomFields : undefined,
+        },
+      },
       success_url: `${req.headers.origin}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin}/`,
     });
