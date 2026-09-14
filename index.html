@@ -628,7 +628,12 @@ function submitAndPay() {
 
   // Montant total : 175€ HT par RDV (17500 centimes), x nombre de RDV dans le panier
   var nbRdv = panier.length > 0 ? panier.length : 1;
-  var montantCentimes = nbRdv * 17500;
+  // Mode test discret : ajouter ?test=1 dans l'URL du site remplace le prix
+  // réel (175€) par 0,50€ par RDV, uniquement pour valider le tunnel de
+  // paiement/facturation sans jamais impacter le prix affiché aux vrais clients.
+  var modeTest = new URLSearchParams(window.location.search).get('test') === '1';
+  var montantCentimes = nbRdv * (modeTest ? 50 : 17500);
+  if (modeTest) console.warn('⚠️ MODE TEST ACTIF — montant facturé : 0,50€ / RDV (retire ?test=1 de l\'URL pour repasser en prix réel)');
 
   // Créer une vraie session Stripe Checkout via la fonction serverless Vercel.
   // Remplace l'ancien Payment Link (LNKR) qui ne transmettait PAS les metadata
