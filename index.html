@@ -587,7 +587,7 @@ function submitInscription() {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Alerte catalogue' } })
-  }).catch(function() {});
+  }).then(function(r){return r.json().then(function(d){console.log('R\u00e9ponse Airtable Cuisinistes (inscription) :',r.status,d);});}).catch(function(e){console.error('Erreur Airtable Cuisinistes (inscription) :',e);});
   
   document.getElementById('modal-content-alert').classList.add('hide');
   document.getElementById('modal-success').classList.remove('hide');
@@ -625,7 +625,7 @@ function submitAndPay() {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175, 'Soci\u00e9t\u00e9': societe, 'Adresse soci\u00e9t\u00e9': adresse, 'SIRET': siret, 'RDV achet\u00e9s': rdvAchetesStr } })
-  }).catch(function() {});
+  }).then(function(r){return r.json().then(function(d){console.log('R\u00e9ponse Airtable Cuisinistes (paiement) :',r.status,d);});}).catch(function(e){console.error('Erreur Airtable Cuisinistes (paiement) :',e);});
   
   closeModal();
 
