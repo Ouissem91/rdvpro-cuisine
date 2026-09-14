@@ -728,9 +728,9 @@ function loadRDV(){
     renderGrid(filt());
     // RDV vendus r\u00e9cemment : charg\u00e9s et fusionn\u00e9s APR\u00c8S coup, sans jamais bloquer
     // ni casser l'affichage principal si cette requ\u00eate ou son traitement \u00e9choue.
-    fetchAT(TBR,"Statut='Vendu'").then(function(allSold){
-      console.info('\uD83D\uDD0D DEBUG \u2014 total RDV Statut=Vendu (sans filtre date) :',allSold.length,allSold[0]?allSold[0].fields:null);
-    }).catch(function(e){console.error('DEBUG erreur test Statut=Vendu :',e);});
+    fetchAT(TBR).then(function(allRecs){
+      console.info('\uD83D\uDD0D DEBUG \u2014 TOUS les Statut bruts (JSON, espaces visibles) :',JSON.stringify(allRecs.map(function(r){return{ville:r.fields['Ville'],statut:r.fields['Statut']};})));
+    }).catch(function(e){console.error('DEBUG erreur fetch complet :',e);});
     fetchAT(TBR,"AND(Statut='Vendu',NOT(IS_BEFORE({Date d'achat},DATEADD(TODAY(),-3,'days'))))").then(function(soldRecs){
       try{
         if(soldRecs[0])console.info('\uD83D\uDD0D Champs Airtable r\u00e9els (RDV vendu) :',soldRecs[0].fields);
