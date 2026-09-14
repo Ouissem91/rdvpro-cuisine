@@ -731,7 +731,6 @@ function loadRDV(){
     fetchAT(TBR,"AND(FIND('Vendu',ARRAYJOIN({Statut})),NOT(IS_BEFORE({Date d'achat},DATEADD(TODAY(),-3,'days'))))").then(function(soldRecs){
       try{
         var sold=parse(soldRecs);
-        console.info('RDV vendus r\u00e9cemment trouv\u00e9s :',sold.length);
         if(sold.length){
           rdvs=mergeAvecVendus(avail,sold);
           renderGrid(filt());
