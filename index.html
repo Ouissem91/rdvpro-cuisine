@@ -622,15 +622,21 @@ function submitAndPay() {
     rdvAchetesStr = (window._currentRdvVille || '') + ' - ' + (window._currentRdvAdresse || '\u2014');
   }
   
-  // Enregistrer cuisiniste dans Airtable
+  // Enregistrer cuisiniste dans Airtable — on ATTEND la fin de cette requête
+  // (succès ou échec) avant de lancer Stripe, sinon la redirection vers Stripe
+  // arrive trop vite et le navigateur annule cette requête en plein vol,
+  // ce qui empêchait la ligne Airtable d'être créée (et le log de s'afficher).
   fetch('https://api.airtable.com/v0/' + BID_CUI + '/' + TBL_CUI, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175, 'Soci\u00e9t\u00e9': societe, 'Adresse soci\u00e9t\u00e9': adresse, 'SIRET': siret, 'RDV achet\u00e9s': rdvAchetesStr } })
-  }).then(function(r){return r.json().then(function(d){console.log('R\u00e9ponse Airtable Cuisinistes (paiement) :',r.status,d);});}).catch(function(e){console.error('Erreur Airtable Cuisinistes (paiement) :',e);});
+  }).then(function(r){return r.json().then(function(d){console.log('R\u00e9ponse Airtable Cuisinistes (paiement) :',r.status,d);});}).catch(function(e){console.error('Erreur Airtable Cuisinistes (paiement) :',e);}).finally(function(){
+    lancerPaiementStripe();
+  });
   
   closeModal();
 
+  function lancerPaiementStripe() {
   // Montant total : 175€ HT par RDV (17500 centimes), x nombre de RDV dans le panier
   var nbRdv = panier.length > 0 ? panier.length : 1;
   // Mode test discret : ajouter ?test=1 dans l'URL du site remplace le prix
@@ -670,6 +676,7 @@ function submitAndPay() {
     alert('Erreur réseau lors du paiement.');
     console.error(err);
   });
+  }
 }
 
 // Fermer modal en cliquant dehors
