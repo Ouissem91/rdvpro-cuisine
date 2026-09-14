@@ -583,7 +583,7 @@ function submitInscription() {
   
   // Enregistrer dans Airtable
   var tel = document.getElementById('m-tel').value.trim();
-  fetch('https://api.airtable.com/v0/' + BID + '/Cuisinistes', {
+  fetch('https://api.airtable.com/v0/' + BID_CUI + '/' + TBL_CUI, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Alerte catalogue' } })
@@ -621,7 +621,7 @@ function submitAndPay() {
   }
   
   // Enregistrer cuisiniste dans Airtable
-  fetch('https://api.airtable.com/v0/' + BID + '/Cuisinistes', {
+  fetch('https://api.airtable.com/v0/' + BID_CUI + '/' + TBL_CUI, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175, 'Soci\u00e9t\u00e9': societe, 'Adresse soci\u00e9t\u00e9': adresse, 'SIRET': siret, 'RDV achet\u00e9s': rdvAchetesStr } })
@@ -677,6 +677,8 @@ document.addEventListener('click', function(e) {
 
 var AT='patYoJll4muUpMks8.98307f6f20100039c28f21684cb82bee439d2524c5ab5f9bc3c0b1d9498f1c01';
 var BID='applhdcep1uMqsWqz';
+var BID_CUI='app0ZWed1fW1slb8V'; // Base "Cuisinistes" (différente de la base RDV ci-dessus)
+var TBL_CUI=encodeURIComponent('Liste cuisinistes');
 var TBR='RDV';
 var LNKR='https://buy.stripe.com/cNiaEXcmd3Vr1kB8Q93gk00';
 var ADMINPWD='admin2024';
