@@ -529,6 +529,9 @@ tr:hover td{background:var(--surface-2);}
         </div>
         <input class="minp" type="email" id="mp-email" placeholder="Email professionnel *">
         <input class="minp" type="tel" id="mp-tel" placeholder="Téléphone *">
+        <input class="minp" type="text" id="mp-societe" placeholder="Nom de la société *">
+        <input class="minp" type="text" id="mp-adresse" placeholder="Adresse de la société *">
+        <input class="minp" type="text" id="mp-siret" placeholder="SIRET (14 chiffres) *" maxlength="14">
         <div style="margin-bottom:4px;font-size:11px;color:#555;">Vos départements d'intervention * (plusieurs choix possibles)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="mp-depts">
           <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#aaa;cursor:pointer;"><input type="checkbox" value="75" style="accent-color:var(--vert)"> Paris (75)</label>
@@ -597,7 +600,11 @@ function submitAndPay() {
   var tel = document.getElementById('mp-tel').value.trim();
   var dept = Array.from(document.querySelectorAll('#mp-depts input:checked')).map(function(cb){return cb.value;}).join(',');
   var nom = document.getElementById('mp-nom').value.trim();
-  if (!prenom || !email || !tel || !dept) { alert('Merci de remplir tous les champs et de sélectionner au moins un département.'); return; }
+  var societe = document.getElementById('mp-societe').value.trim();
+  var adresse = document.getElementById('mp-adresse').value.trim();
+  var siret = document.getElementById('mp-siret').value.trim().replace(/\s/g, '');
+  if (!prenom || !email || !tel || !dept || !societe || !adresse || !siret) { alert('Merci de remplir tous les champs (y compris société, adresse et SIRET, nécessaires pour votre facture) et de sélectionner au moins un département.'); return; }
+  if (!/^\d{14}$/.test(siret)) { alert('Le SIRET doit contenir exactement 14 chiffres.'); return; }
   
   // Récupérer les IDs des RDV
   var rdvIds = '';
@@ -614,7 +621,7 @@ function submitAndPay() {
   fetch('https://api.airtable.com/v0/' + BID + '/Cuisinistes', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175 } })
+    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175, 'Soci\u00e9t\u00e9': societe, 'Adresse soci\u00e9t\u00e9': adresse, 'SIRET': siret } })
   }).catch(function() {});
   
   closeModal();
@@ -634,6 +641,9 @@ function submitAndPay() {
       email: email,
       nom: prenom + ' ' + nom,
       tel: tel,
+      societe: societe,
+      adresse: adresse,
+      siret: siret,
       montantCentimes: montantCentimes
     })
   })
