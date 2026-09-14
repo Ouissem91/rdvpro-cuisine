@@ -485,6 +485,7 @@ tr:hover td{background:var(--surface-2);}
         </div>
         <input class="minp" type="email" id="m-email" placeholder="Email professionnel *">
         <input class="minp" type="tel" id="m-tel" placeholder="Téléphone">
+        <input class="minp" type="text" id="m-societe" placeholder="Nom de la société *">
         <div style="margin-bottom:4px;font-size:11px;color:#555;">Vos départements d'intervention * (plusieurs choix possibles)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="m-depts">
           <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#aaa;cursor:pointer;"><input type="checkbox" value="75" style="accent-color:var(--vert)"> Paris (75)</label>
@@ -578,15 +579,16 @@ function submitInscription() {
   var prenom = document.getElementById('m-prenom').value.trim();
   var nom = document.getElementById('m-nom').value.trim();
   var email = document.getElementById('m-email').value.trim();
+  var societe = document.getElementById('m-societe').value.trim();
   var dept = Array.from(document.querySelectorAll('#m-depts input:checked')).map(function(cb){return cb.value;}).join(',');
-  if (!prenom || !email || !dept) { alert('Merci de remplir les champs obligatoires et de sélectionner au moins un département.'); return; }
+  if (!prenom || !email || !societe || !dept) { alert('Merci de remplir les champs obligatoires (dont le nom de la société) et de sélectionner au moins un département.'); return; }
   
   // Enregistrer dans Airtable
   var tel = document.getElementById('m-tel').value.trim();
   fetch('https://api.airtable.com/v0/' + BID_CUI + '/' + TBL_CUI, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Alerte catalogue' } })
+    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Alerte catalogue', 'Soci\u00e9t\u00e9': societe } })
   }).then(function(r){return r.json().then(function(d){console.log('R\u00e9ponse Airtable Cuisinistes (inscription) :',r.status,d);});}).catch(function(e){console.error('Erreur Airtable Cuisinistes (inscription) :',e);});
   
   document.getElementById('modal-content-alert').classList.add('hide');
