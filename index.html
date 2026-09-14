@@ -683,7 +683,9 @@ function fetchAT(tbl,fml){
 function parse(recs){
   return recs.map(function(r){
     var f=r.fields||{};
-    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:f['Statut']||'Disponible',da:f["Date d'achat"]||f['Date achat']||null};
+    var statut=f['Statut'];
+    if(Array.isArray(statut))statut=statut[0];
+    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du rdv ']||f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:statut||'Disponible',da:f["Date d'achat"]||f['Date achat']||null};
   });
 }
 
@@ -726,7 +728,10 @@ function loadRDV(){
     renderGrid(filt());
     // RDV vendus r\u00e9cemment : charg\u00e9s et fusionn\u00e9s APR\u00c8S coup, sans jamais bloquer
     // ni casser l'affichage principal si cette requ\u00eate ou son traitement \u00e9choue.
-    fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date d'achat},DATEADD(TODAY(),-3,'days')))").then(function(soldRecs){
+    fetchAT(TBR,"Statut='Vendu'").then(function(allSold){
+      console.info('\uD83D\uDD0D DEBUG \u2014 total RDV Statut=Vendu (sans filtre date) :',allSold.length,allSold[0]?allSold[0].fields:null);
+    }).catch(function(e){console.error('DEBUG erreur test Statut=Vendu :',e);});
+    fetchAT(TBR,"AND(Statut='Vendu',NOT(IS_BEFORE({Date d'achat},DATEADD(TODAY(),-3,'days'))))").then(function(soldRecs){
       try{
         if(soldRecs[0])console.info('\uD83D\uDD0D Champs Airtable r\u00e9els (RDV vendu) :',soldRecs[0].fields);
         var sold=parse(soldRecs);
