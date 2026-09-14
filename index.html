@@ -686,7 +686,7 @@ function parse(recs){
     var statut=f['Statut'];
     if(Array.isArray(statut))statut=statut[0];
     if(typeof statut==='string')statut=statut.trim();
-    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du rdv ']||f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:statut||'Disponible',da:f["Date d'achat"]||f['Date achat']||null};
+    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postale']||f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du rdv ']||f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:statut||'Disponible',da:f["Date d'achat"]||f['Date achat']||null};
   });
 }
 
