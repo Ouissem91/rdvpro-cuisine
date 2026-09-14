@@ -721,7 +721,6 @@ function mergeAvecVendus(avail,sold){
 function loadRDV(){
   document.getElementById('grid').innerHTML='<div class="loading">Chargement...</div>';
   fetchAT(TBR,"FIND('Confirmé',ARRAYJOIN({Statut}))").then(function(recs){
-    if(recs[0])console.info('\uD83D\uDD0D Champs Airtable r\u00e9els (RDV disponible) :',recs[0].fields);
     var avail=parse(recs);
     if(!avail.length)throw new Error('empty');
     rdvs=avail;
@@ -729,12 +728,8 @@ function loadRDV(){
     renderGrid(filt());
     // RDV vendus r\u00e9cemment : charg\u00e9s et fusionn\u00e9s APR\u00c8S coup, sans jamais bloquer
     // ni casser l'affichage principal si cette requ\u00eate ou son traitement \u00e9choue.
-    fetchAT(TBR).then(function(allRecs){
-      console.info('\uD83D\uDD0D DEBUG \u2014 TOUS les Statut bruts (JSON, espaces visibles) :',JSON.stringify(allRecs.map(function(r){return{ville:r.fields['Ville'],statut:r.fields['Statut']};})));
-    }).catch(function(e){console.error('DEBUG erreur fetch complet :',e);});
     fetchAT(TBR,"AND(FIND('Vendu',ARRAYJOIN({Statut})),NOT(IS_BEFORE({Date d'achat},DATEADD(TODAY(),-3,'days'))))").then(function(soldRecs){
       try{
-        if(soldRecs[0])console.info('\uD83D\uDD0D Champs Airtable r\u00e9els (RDV vendu) :',soldRecs[0].fields);
         var sold=parse(soldRecs);
         console.info('RDV vendus r\u00e9cemment trouv\u00e9s :',sold.length);
         if(sold.length){
@@ -789,7 +784,7 @@ function renderGrid(data){
         '<div class="vendu-strip">🔴 Vendu r\u00e9cemment<span class="vendu-time">'+relTime(r.da)+'</span></div>'+
         '<div class="card-top">'+
         '<div class="card-top-grid"></div>'+
-        '<div><div class="card-ville">'+r.ville+'</div><div class="card-cp">'+r.cp+'</div></div>'+
+        '<div><div class="card-ville">'+r.ville+' ('+r.cp+')</div></div>'+
         '<span class="card-badge vendu-badge">🍳 '+r.niche+'</span></div>'+
         '<div class="card-body">'+
         '<div class="cf"><span class="cfl">Travaux</span><span class="cfv locked">'+r.tra+'</span></div>'+
@@ -802,7 +797,7 @@ function renderGrid(data){
     return '<div class="card'+(ic?' in-cart':'')+'" id="card-'+r.id+'">'+
       '<div class="card-top" onclick="openDet(\''+r.id+'\')">'+
       '<div class="card-top-grid"></div>'+
-      '<div><div class="card-ville">'+r.ville+'</div><div class="card-cp">'+r.cp+'</div></div>'+
+      '<div><div class="card-ville">'+r.ville+' ('+r.cp+')</div></div>'+
       '<span class="card-badge">🍳 '+r.niche+'</span></div>'+
       '<div class="card-body" onclick="openDet(\''+r.id+'\')">'+
       '<div class="cf"><span class="cfl">Travaux</span><span class="cfv">'+r.tra+'</span></div>'+
