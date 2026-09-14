@@ -718,6 +718,7 @@ function mergeAvecVendus(avail,sold){
 function loadRDV(){
   document.getElementById('grid').innerHTML='<div class="loading">Chargement...</div>';
   fetchAT(TBR,"Statut='Confirmé'").then(function(recs){
+    if(recs[0])console.info('\uD83D\uDD0D Champs Airtable r\u00e9els (RDV disponible) :',recs[0].fields);
     var avail=parse(recs);
     if(!avail.length)throw new Error('empty');
     rdvs=avail;
@@ -727,6 +728,7 @@ function loadRDV(){
     // ni casser l'affichage principal si cette requ\u00eate ou son traitement \u00e9choue.
     fetchAT(TBR,"AND(Statut='Vendu',IS_AFTER({Date d'achat},DATEADD(TODAY(),-3,'days')))").then(function(soldRecs){
       try{
+        if(soldRecs[0])console.info('\uD83D\uDD0D Champs Airtable r\u00e9els (RDV vendu) :',soldRecs[0].fields);
         var sold=parse(soldRecs);
         console.info('RDV vendus r\u00e9cemment trouv\u00e9s :',sold.length);
         if(sold.length){
