@@ -609,19 +609,22 @@ function submitAndPay() {
   // Récupérer les IDs des RDV
   var rdvIds = '';
   var rdvVilles = '';
+  var rdvAchetesStr = '';
   if (panier.length > 0) {
     rdvIds = panier.map(function(r) { return r.id; }).join(',');
     rdvVilles = panier.map(function(r) { return r.ville; }).join(',');
+    rdvAchetesStr = panier.map(function(r) { return r.ville + ' - ' + (r.adr || '\u2014'); }).join(' | ');
   } else if (window._currentRdvId) {
     rdvIds = window._currentRdvId;
     rdvVilles = window._currentRdvVille || '';
+    rdvAchetesStr = (window._currentRdvVille || '') + ' - ' + (window._currentRdvAdresse || '\u2014');
   }
   
   // Enregistrer cuisiniste dans Airtable
   fetch('https://api.airtable.com/v0/' + BID + '/Cuisinistes', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175, 'Soci\u00e9t\u00e9': societe, 'Adresse soci\u00e9t\u00e9': adresse, 'SIRET': siret } })
+    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175, 'Soci\u00e9t\u00e9': societe, 'Adresse soci\u00e9t\u00e9': adresse, 'SIRET': siret, 'RDV achet\u00e9s': rdvAchetesStr } })
   }).catch(function() {});
   
   closeModal();
@@ -701,7 +704,7 @@ function parse(recs){
     var statut=f['Statut'];
     if(Array.isArray(statut))statut=statut[0];
     if(typeof statut==='string')statut=statut.trim();
-    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postale']||f['Code postal']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du rdv ']||f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:statut||'Disponible',da:f["Date d'achat"]||f['Date achat']||null};
+    return{id:r.id,ville:f['Ville']||f['Name']||'\u2014',cp:f['Code postale']||f['Code postal']||'\u2014',adr:f['Adresse ']||f['Adresse']||'\u2014',niche:f['Niche']||f['Type']||'Cuisine compl\u00e8te',pro:f['Le prospect est :']||'Propri\u00e9taire',tra:f['Nature des travaux']||f['Travaux']||'\u2014',bud:f['Budget :']||f['Budget']||'\u2014',del:f['D\u00e9lai']||'\u2014',rdv:f['Date du rdv ']||f['Date du RDV']||f['Date RDV']||'\u2014',px:f['Prix']||175,st:statut||'Disponible',da:f["Date d'achat"]||f['Date achat']||null};
   });
 }
 
@@ -919,6 +922,7 @@ function openDet(id){
       // Stocker l'ID du RDV pour le paiement direct
       window._currentRdvId = cur.id;
       window._currentRdvVille = cur.ville;
+      window._currentRdvAdresse = cur.adr;
     }
     openModal('pay');
   };
