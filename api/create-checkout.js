@@ -99,7 +99,7 @@ module.exports = async (req, res) => {
           custom_fields: invoiceCustomFields.length ? invoiceCustomFields : undefined,
         },
       },
-      success_url: `${req.headers.origin}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.origin}/merci.html?session_id={CHECKOUT_SESSION_ID}&amount=${montantCentimes}`,
       cancel_url: `${req.headers.origin}/`,
     });
 
