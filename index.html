@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RDVPro Cuisine — RDV qualifiés pour cuisinistes</title>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1437873588239152');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1437873588239152&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <style>
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -575,6 +592,19 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.add('hide');
 }
 
+// Nettoie un numéro de téléphone saisi (quel que soit le format tapé) et
+// l'affiche proprement au format français standard : "06 27 89 00 53".
+// Gère aussi le format international +33 : "+33 6 27 89 00 53".
+function formatTelAffichage(numero) {
+  if (!numero) return '';
+  var digits = String(numero).replace(/\D/g, ''); // ne garde que les chiffres
+  if (digits.length === 11 && digits.startsWith('33')) digits = '0' + digits.slice(2);
+  if (digits.length === 10 && digits.startsWith('0')) {
+    return digits.replace(/(\d{2})(?=\d)/g, '$1 ').trim();
+  }
+  return numero; // format non reconnu (étranger, incomplet...) : on laisse tel quel
+}
+
 function submitInscription() {
   var prenom = document.getElementById('m-prenom').value.trim();
   var nom = document.getElementById('m-nom').value.trim();
@@ -583,12 +613,15 @@ function submitInscription() {
   var dept = Array.from(document.querySelectorAll('#m-depts input:checked')).map(function(cb){return cb.value;}).join(',');
   if (!prenom || !email || !societe || !dept) { alert('Merci de remplir les champs obligatoires (dont le nom de la société) et de sélectionner au moins un département.'); return; }
   
+  // Pixel Meta : événement Lead — inscription cuisiniste aux alertes
+  if (typeof fbq === 'function') fbq('track', 'Lead');
+  
   // Enregistrer dans Airtable
   var tel = document.getElementById('m-tel').value.trim();
   fetch('https://api.airtable.com/v0/' + BID_CUI + '/' + TBL_CUI, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Alerte catalogue', 'Soci\u00e9t\u00e9': societe } })
+    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': formatTelAffichage(tel), 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Alerte catalogue', 'Soci\u00e9t\u00e9': societe } })
   }).then(function(r){return r.json().then(function(d){console.log('R\u00e9ponse Airtable Cuisinistes (inscription) :',r.status,JSON.stringify(d));});}).catch(function(e){console.error('Erreur Airtable Cuisinistes (inscription) :',String(e));});
   
   document.getElementById('modal-content-alert').classList.add('hide');
@@ -629,7 +662,7 @@ function submitAndPay() {
   fetch('https://api.airtable.com/v0/' + BID_CUI + '/' + TBL_CUI, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + AT, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': tel, 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175, 'Soci\u00e9t\u00e9': societe, 'Adresse soci\u00e9t\u00e9': adresse, 'SIRET': siret, 'RDV achet\u00e9s': rdvAchetesStr } })
+    body: JSON.stringify({ fields: { 'Nom': prenom + ' ' + nom, 'Email': email, 'T\u00e9l\u00e9phone': formatTelAffichage(tel), 'D\u00e9partements': dept, 'Statut': 'Actif', 'Source': 'Paiement', 'CA g\u00e9n\u00e9r\u00e9': panier.length > 0 ? panier.length * 175 : 175, 'Soci\u00e9t\u00e9': societe, 'Adresse soci\u00e9t\u00e9': adresse, 'SIRET': siret, 'RDV achet\u00e9s': rdvAchetesStr } })
   }).then(function(r){return r.json().then(function(d){console.log('R\u00e9ponse Airtable Cuisinistes (paiement) :',r.status,JSON.stringify(d));});}).catch(function(e){console.error('Erreur Airtable Cuisinistes (paiement) :',String(e));}).finally(function(){
     lancerPaiementStripe();
   });
