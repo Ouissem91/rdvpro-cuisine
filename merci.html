@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Paiement confirmé — RDVPro Cuisine</title>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1437873588239152');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1437873588239152&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -88,5 +105,27 @@
     <a href="/" class="btn">Retour au catalogue</a>
     <p class="footer-note">RDVPro Cuisine — Garantie remplacement en cas de no-show</p>
   </div>
+
+  <script>
+  // Événement Purchase — déclenché une seule fois par session_id, même si la
+  // page est rechargée (sessionStorage sert de garde-fou anti-doublon).
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var sessionId = params.get('session_id');
+    var amountCentimes = parseInt(params.get('amount'), 10);
+    if (!sessionId || !amountCentimes || isNaN(amountCentimes)) return;
+
+    var dejaEnvoye = sessionStorage.getItem('purchase_tracked_' + sessionId);
+    if (dejaEnvoye) return;
+
+    if (typeof fbq === 'function') {
+      fbq('track', 'Purchase', {
+        value: amountCentimes / 100,
+        currency: 'EUR'
+      });
+      sessionStorage.setItem('purchase_tracked_' + sessionId, '1');
+    }
+  })();
+  </script>
 </body>
 </html>
